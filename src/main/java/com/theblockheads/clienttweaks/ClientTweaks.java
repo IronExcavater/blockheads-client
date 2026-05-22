@@ -1,5 +1,7 @@
 package com.theblockheads.clienttweaks;
 
+import me.shedaniel.autoconfig.AutoConfig;
+import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.api.ClientModInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +13,6 @@ public class ClientTweaks implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient() {
-		ClientTweaksConfig.load();
+		AutoConfig.register(ClientTweaksConfig.class, GsonConfigSerializer::new);
 	}
 }

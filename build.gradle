@@ -12,6 +12,10 @@ base {
 
 repositories {
 	maven {
+		name = 'Shedaniel'
+		url = 'https://maven.shedaniel.me/'
+	}
+	maven {
 		name = 'TerraformersMC'
 		url = 'https://maven.terraformersmc.com/releases'
 	}
@@ -29,7 +33,10 @@ dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
-	// Optional — provides the ModMenu config button; not required at runtime
+	// Cloth Config — already in the modpack; provides AutoConfig + GUI
+	compileOnly "me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}"
+
+	// ModMenu — optional, wires up the in-game config button
 	compileOnly "com.terraformersmc:modmenu:${project.modmenu_version}"
 }
 

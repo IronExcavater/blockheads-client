@@ -42,10 +42,10 @@ gradle-app.setting
 .gradletasknamecache
 
 # Eclipse Gradle plugin generated files
-# Eclipse Core
 .project
-# JDT-specific (Eclipse Java Development Tools)
 .classpath
+.settings/
+*.launch
 
 # Fabric / Minecraft
 run/
