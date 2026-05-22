@@ -5,12 +5,24 @@
   "name": "Blockheads Client Tweaks",
   "description": "Narrows the creative inventory search box to prevent overlap with IPN sort buttons.",
   "authors": [ "The Blockheads" ],
+  "icon": "assets/blockheads_client_tweaks/icon.png",
   "environment": "client",
+  "entrypoints": {
+    "client": [
+      "com.theblockheads.clienttweaks.ClientTweaks"
+    ],
+    "modmenu": [
+      "com.theblockheads.clienttweaks.compat.ModMenuIntegration"
+    ]
+  },
   "mixins": [
     "blockheads_client_tweaks.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.15.0",
     "minecraft": "~26.1"
+  },
+  "suggests": {
+    "modmenu": "*"
   }
 }
