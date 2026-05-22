@@ -2,7 +2,6 @@ package com.theblockheads.clienttweaks.mixin;
 
 import com.theblockheads.clienttweaks.ClientTweaks;
 import com.theblockheads.clienttweaks.ClientTweaksConfig;
-import me.shedaniel.autoconfig.AutoConfig;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import org.spongepowered.asm.mixin.Mixin;
@@ -18,10 +17,10 @@ public abstract class CreativeModeInventoryScreenMixin {
 	private EditBox searchBox;
 
 	@Inject(method = "init", at = @At("TAIL"))
-	private void blockheads$shrinkSearchBox(CallbackInfo ci) {
-		ClientTweaksConfig config = AutoConfig.getConfigHolder(ClientTweaksConfig.class).getConfig();
-		if (config.narrowSearchBox && searchBox != null) {
-			searchBox.setWidth(config.searchBoxWidth);
+	private void blockheads$applySearchBoxWidth(CallbackInfo ci) {
+		int width = ClientTweaks.CONFIG.creativeSearchWidth;
+		if (width != ClientTweaksConfig.VANILLA_WIDTH && searchBox != null) {
+			searchBox.setWidth(width);
 		}
 	}
 }

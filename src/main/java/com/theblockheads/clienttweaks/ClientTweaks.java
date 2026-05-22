@@ -11,8 +11,14 @@ public class ClientTweaks implements ClientModInitializer {
 	public static final String MOD_ID = "blockheads_client_tweaks";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
+	public static ClientTweaksConfig CONFIG;
+
 	@Override
 	public void onInitializeClient() {
-		AutoConfig.register(ClientTweaksConfig.class, GsonConfigSerializer::new);
+		CONFIG = AutoConfig.register(ClientTweaksConfig.class, GsonConfigSerializer::new).getConfig();
+	}
+
+	public static void saveConfig() {
+		AutoConfig.getConfigHolder(ClientTweaksConfig.class).save();
 	}
 }

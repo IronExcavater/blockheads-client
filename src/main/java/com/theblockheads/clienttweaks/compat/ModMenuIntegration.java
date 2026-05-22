@@ -2,11 +2,9 @@ package com.theblockheads.clienttweaks.compat;
 
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;
+import com.theblockheads.clienttweaks.ClientTweaks;
 import com.theblockheads.clienttweaks.ClientTweaksConfig;
-import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
-import me.shedaniel.clothconfig2.api.ConfigCategory;
-import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import net.minecraft.network.chat.Component;
 
 public class ModMenuIntegration implements ModMenuApi {
@@ -14,29 +12,23 @@ public class ModMenuIntegration implements ModMenuApi {
 	@Override
 	public ConfigScreenFactory<?> getModConfigScreenFactory() {
 		return parent -> {
-			ClientTweaksConfig config = AutoConfig.getConfigHolder(ClientTweaksConfig.class).getConfig();
-
 			ConfigBuilder builder = ConfigBuilder.create()
 				.setParentScreen(parent)
 				.setTitle(Component.literal("Blockheads Client Tweaks"))
-				.setSavingRunnable(() -> AutoConfig.getConfigHolder(ClientTweaksConfig.class).save());
+				.setSavingRunnable(ClientTweaks::saveConfig);
 
-			ConfigEntryBuilder entries = builder.entryBuilder();
-			ConfigCategory category = builder.getOrCreateCategory(Component.literal("Creative Inventory"));
-
-			category.addEntry(entries.startBooleanToggle(
-					Component.literal("Narrow creative search box"), config.narrowSearchBox)
-				.setDefaultValue(true)
-				.setTooltip(Component.literal("Prevents the search box from overlapping IPN sort buttons"))
-				.setSaveConsumer(val -> config.narrowSearchBox = val)
-				.build());
-
-			category.addEntry(entries.startIntSlider(
-					Component.literal("Search box width"), config.searchBoxWidth, 40, 200)
-				.setDefaultValue(70)
-				.setTooltip(Component.literal("Width in pixels (40–200)"))
-				.setSaveConsumer(val -> config.searchBoxWidth = val)
-				.build());
+			builder.getOrCreateCategory(Component.literal("Creative Inventory"))
+				.addEntry(builder.entryBuilder()
+					.startIntSlider(
+						Component.literal("Creative Search Box Width"),
+						ClientTweaks.CONFIG.creativeSearchWidth, 0, 200)
+					.setDefaultValue(ClientTweaksConfig.DEFAULT_WIDTH)
+					.setTextGetter(val -> val == ClientTweaksConfig.VANILLA_WIDTH
+						? Component.literal("Vanilla")
+						: Component.literal(val + " px"))
+					.setTooltip(Component.literal("Width of the creative search box. Set to Vanilla to disable."))
+					.setSaveConsumer(val -> ClientTweaks.CONFIG.creativeSearchWidth = val)
+					.build());
 
 			return builder.build();
 		};
