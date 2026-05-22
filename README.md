@@ -1,6 +1,6 @@
 # Blockheads Client Tweaks
 
-Fabric client mod for [The Blockheads](https://discord.gg/) server.
+Fabric client mod for The Blockheads server.
 
 ## What it does
 
