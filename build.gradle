@@ -27,6 +27,17 @@ loom {
 			sourceSet sourceSets.main
 		}
 	}
+
+	runs {
+		client {
+			client()
+			ideConfigGenerated true
+			runDir "run"
+			programArgs "--username", "Dev"
+			// Prints which mixins are applied and exports mixed classes to run/.mixin.out/
+			vmArgs "-Dmixin.debug.verbose=true", "-Dmixin.debug.export=true"
+		}
+	}
 }
 
 dependencies {

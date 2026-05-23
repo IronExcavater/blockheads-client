@@ -56,6 +56,10 @@ remappedSrc/
 # Visual Studio cache directory
 .vs/
 
+# Visual Studio Code — ignore machine-specific files, keep shared settings
+.vscode/
+!.vscode/settings.json
+
 # JetBrains cache directory
 .idea/
 
