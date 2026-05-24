@@ -34,8 +34,6 @@ loom {
 			ideConfigGenerated true
 			runDir "run"
 			programArgs "--username", "Dev"
-			// Prints which mixins are applied and exports mixed classes to run/.mixin.out/
-			vmArgs "-Dmixin.debug.verbose=true", "-Dmixin.debug.export=true"
 		}
 	}
 }
@@ -44,11 +42,9 @@ dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
-	// Cloth Config — already in the modpack; provides AutoConfig + GUI
-	compileOnly "me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}"
-
-	// ModMenu — optional, wires up the in-game config button
-	compileOnly "com.terraformersmc:modmenu:${project.modmenu_version}"
+	// Cloth Config and ModMenu — provided by the modpack, compile-only in the final jar.
+	implementation "me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}"
+	implementation "com.terraformersmc:modmenu:${project.modmenu_version}"
 }
 
 processResources {

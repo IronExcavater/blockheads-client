@@ -16,6 +16,7 @@ public class ClientTweaks implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 		CONFIG = AutoConfig.register(ClientTweaksConfig.class, GsonConfigSerializer::new).getConfig();
+		LOGGER.info("Initialized — creative search width: {}px", CONFIG.creativeSearchWidth);
 	}
 
 	public static void saveConfig() {
