@@ -19,6 +19,10 @@ repositories {
 		name = 'TerraformersMC'
 		url = 'https://maven.terraformersmc.com/releases'
 	}
+	maven {
+		name = 'BlameJared'
+		url = 'https://maven.blamejared.com'
+	}
 }
 
 loom {
@@ -46,11 +50,8 @@ dependencies {
 	implementation "me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}"
 	implementation "com.terraformersmc:modmenu:${project.modmenu_version}"
 
-	// Optional pack compatibility: ArmorTip reports its preview component as 0x0.
-	compileOnly files("B:/automodpack/host-modpack/main/mods/armortip-26.1.jar")
-
 	// Optional JEI plugin: hide internal-only enchantment books when JEI is present.
-	compileOnly files("B:/mods/jei-26.1.2-fabric-29.6.2.31.jar")
+	compileOnly "mezz.jei:jei-${project.minecraft_version}-fabric-api:${project.jei_version}"
 }
 
 processResources {

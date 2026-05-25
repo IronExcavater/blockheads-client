@@ -2,7 +2,6 @@ package com.theblockheads.clienttweaks.mixin;
 
 import com.llamalad7.mixinextras.sugar.Local;
 import com.theblockheads.clienttweaks.ToolTrimTooltipUtil;
-import net.bmjo.armortip.util.ArmortipUtil;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
@@ -15,6 +14,8 @@ import java.util.List;
 
 @Mixin(GuiGraphicsExtractor.class)
 public abstract class ArmorTooltipWidthMixin {
+
+	private static final Class<?> ARMORTIP_UTIL = blockheads$armortipUtil();
 
 	// ArmorTip adds a fixed 54px for its armor panel (48 SIZE + 6 MARGIN) but computes that
 	// against whatever width vanilla produced. If vanilla only counted the title line instead of
@@ -40,9 +41,36 @@ public abstract class ArmorTooltipWidthMixin {
 	}
 
 	private boolean blockheads$needsExtraWidth() {
-		if (ArmortipUtil.shouldExtend()) return true;
+		if (blockheads$armortipShouldExtend()) return true;
 
-		ItemStack focused = ArmortipUtil.getFocusedItem();
+		ItemStack focused = blockheads$armortipFocusedItem();
 		return focused != null && ToolTrimTooltipUtil.isTemplateBook(focused);
+	}
+
+	private static Class<?> blockheads$armortipUtil() {
+		try {
+			return Class.forName("net.bmjo.armortip.util.ArmortipUtil");
+		} catch (ClassNotFoundException ignored) {
+			return null;
+		}
+	}
+
+	private static boolean blockheads$armortipShouldExtend() {
+		if (ARMORTIP_UTIL == null) return false;
+		try {
+			return Boolean.TRUE.equals(ARMORTIP_UTIL.getMethod("shouldExtend").invoke(null));
+		} catch (ReflectiveOperationException ignored) {
+			return false;
+		}
+	}
+
+	private static ItemStack blockheads$armortipFocusedItem() {
+		if (ARMORTIP_UTIL == null) return null;
+		try {
+			Object focused = ARMORTIP_UTIL.getMethod("getFocusedItem").invoke(null);
+			return focused instanceof ItemStack stack ? stack : null;
+		} catch (ReflectiveOperationException ignored) {
+			return null;
+		}
 	}
 }
