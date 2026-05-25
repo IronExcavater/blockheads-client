@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "id": "blockheads_client_tweaks",
   "version": "${version}",
-  "name": "Blockheads Client Tweaks",
-  "description": "Narrows the creative inventory search box to prevent overlap with IPN sort buttons.",
-  "authors": [ "The Blockheads" ],
+  "name": "The Block Client Tweaks",
+  "description": "Client-side polish for The Block modpack: cleaner creative search, tooltip fixes, and hidden internal-only entries.",
+  "authors": [ "The Block" ],
   "icon": "assets/blockheads_client_tweaks/icon.png",
   "environment": "client",
   "entrypoints": {

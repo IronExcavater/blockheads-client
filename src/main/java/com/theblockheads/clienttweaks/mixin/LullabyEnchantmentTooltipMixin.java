@@ -18,9 +18,9 @@ public abstract class LullabyEnchantmentTooltipMixin {
 
 	// Lullaby enchantments ship literal tooltip names; replace them with our translatable glyph labels.
 	private static final Map<String, Component> REPLACEMENTS = Map.of(
-		"Magnetic", Component.translatable("blockheads.enchantment.magnetic"),
-		"Smelting", Component.translatable("blockheads.enchantment.smelting"),
-		"Veinminer", Component.translatable("blockheads.enchantment.veinminer")
+		"Magnetic", Component.literal("\uDBA0\uDC13 Magnetic"),
+		"Smelting", Component.literal("\uDBA0\uDC0A Smelting"),
+		"Veinminer", Component.literal("\uDBA0\uDC08 Veinminer")
 	);
 
 	@Inject(method = "getTooltipLines", at = @At("RETURN"))

@@ -40,7 +40,7 @@ jobs:
       - name: Upload build artifact
         uses: actions/upload-artifact@v6
         with:
-          name: blockheads-client-tweaks-${{ github.sha }}
+          name: the-block-client-tweaks-${{ github.sha }}
           path: build/libs/*[!-sources].jar
           if-no-files-found: error
           retention-days: 7

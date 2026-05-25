@@ -41,7 +41,7 @@ jobs:
       - name: Upload mod jar
         uses: actions/upload-artifact@v6
         with:
-          name: blockheads-client-tweaks-${{ steps.meta.outputs.version }}
+          name: the-block-client-tweaks-${{ steps.meta.outputs.version }}
           path: build/libs/*[!-sources].jar
           if-no-files-found: error
           retention-days: 90
@@ -56,11 +56,11 @@ jobs:
       - name: Download mod jar
         uses: actions/download-artifact@v7
         with:
-          name: blockheads-client-tweaks-${{ needs.build.outputs.version }}
+          name: the-block-client-tweaks-${{ needs.build.outputs.version }}
 
       - name: Create release
         uses: softprops/action-gh-release@v3
         with:
-          name: Blockheads Client Tweaks v${{ needs.build.outputs.version }}
+          name: The Block Client Tweaks v${{ needs.build.outputs.version }}
           generate_release_notes: true
           files: "*.jar"

@@ -48,6 +48,9 @@ dependencies {
 
 	// Optional pack compatibility: ArmorTip reports its preview component as 0x0.
 	compileOnly files("B:/automodpack/host-modpack/main/mods/armortip-26.1.jar")
+
+	// Optional JEI plugin: hide internal-only enchantment books when JEI is present.
+	compileOnly files("B:/mods/jei-26.1.2-fabric-29.6.2.31.jar")
 }
 
 processResources {

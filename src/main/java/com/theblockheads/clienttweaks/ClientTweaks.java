@@ -16,7 +16,7 @@ public class ClientTweaks implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 		CONFIG = AutoConfig.register(ClientTweaksConfig.class, GsonConfigSerializer::new).getConfig();
-		LOGGER.info("Blockheads Client Tweaks initialized");
+		LOGGER.info("The Block Client Tweaks initialized");
 	}
 
 	public static void saveConfig() {
