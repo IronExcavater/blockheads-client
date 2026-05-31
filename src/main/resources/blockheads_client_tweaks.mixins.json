@@ -6,7 +6,6 @@
     "ArmorTooltipWidthMixin",
     "CreativeModeTabMixin",
     "CreativeModeInventoryScreenMixin",
-    "LullabyEnchantmentTooltipMixin",
     "ToolTrimsTemplateTooltipMixin"
   ],
   "injectors": {
