@@ -5,7 +5,8 @@
   "client": [
     "CreativeModeTabMixin",
     "CreativeModeInventoryScreenMixin",
-    "ToolTrimsTemplateTooltipMixin"
+    "ToolTrimsTemplateTooltipMixin",
+    "MapSyncerAutoSyncMixin"
   ],
   "injectors": {
     "defaultRequire": 1

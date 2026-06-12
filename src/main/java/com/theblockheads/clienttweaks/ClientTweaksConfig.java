@@ -13,8 +13,16 @@ public class ClientTweaksConfig implements ConfigData {
 
 	public int creativeSearchWidth = DEFAULT_WIDTH;
 
+	public static final int MAPSYNCER_AUTO_SYNC_MIN_INTERVAL     = 1;
+	public static final int MAPSYNCER_AUTO_SYNC_MAX_INTERVAL     = 60;
+	public static final int MAPSYNCER_AUTO_SYNC_DEFAULT_INTERVAL = 5;
+
+	public boolean mapSyncerAutoSyncEnabled = true;
+	public int mapSyncerAutoSyncIntervalMinutes = MAPSYNCER_AUTO_SYNC_DEFAULT_INTERVAL;
+
 	@Override
 	public void validatePostLoad() {
 		creativeSearchWidth = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, creativeSearchWidth));
+		mapSyncerAutoSyncIntervalMinutes = Math.max(MAPSYNCER_AUTO_SYNC_MIN_INTERVAL, Math.min(MAPSYNCER_AUTO_SYNC_MAX_INTERVAL, mapSyncerAutoSyncIntervalMinutes));
 	}
 }
