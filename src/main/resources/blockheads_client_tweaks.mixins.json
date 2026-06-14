@@ -6,7 +6,9 @@
     "CreativeModeTabMixin",
     "CreativeModeInventoryScreenMixin",
     "ToolTrimsTemplateTooltipMixin",
-    "MapSyncerAutoSyncMixin"
+    "MapSyncerAutoSyncMixin",
+    "MapSyncerChatMessageMixin",
+    "MapSyncerSyncProgressMixin"
   ],
   "injectors": {
     "defaultRequire": 1

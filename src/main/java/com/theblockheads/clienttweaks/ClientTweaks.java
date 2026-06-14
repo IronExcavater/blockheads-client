@@ -1,22 +1,27 @@
 package com.theblockheads.clienttweaks;
 
+import com.theblockheads.clienttweaks.compat.MapSyncerSilenceCommand;
+import com.theblockheads.clienttweaks.compat.OkZoomerServerOverrides;
+import com.theblockheads.clienttweaks.network.OkZoomerServerConfigPayload;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.api.ClientModInitializer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 
 public class ClientTweaks implements ClientModInitializer {
-
-	public static final String MOD_ID = "blockheads_client_tweaks";
-	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+	public static final String MOD_ID = ClientTweaksConstants.MOD_ID;
 
 	public static ClientTweaksConfig CONFIG;
 
 	@Override
 	public void onInitializeClient() {
 		CONFIG = AutoConfig.register(ClientTweaksConfig.class, GsonConfigSerializer::new).getConfig();
-		LOGGER.info("The Block Client Tweaks initialized");
+		PayloadTypeRegistry.clientboundPlay().register(OkZoomerServerConfigPayload.TYPE, OkZoomerServerConfigPayload.CODEC);
+		ClientPlayNetworking.registerGlobalReceiver(OkZoomerServerConfigPayload.TYPE, (payload, context) ->
+				context.client().execute(() -> OkZoomerServerOverrides.apply(payload.spyglassMode(), payload.zoomOverlay())));
+		MapSyncerSilenceCommand.register();
+		ClientTweaksConstants.LOGGER.info("The Block Client Tweaks initialized");
 	}
 
 	public static void saveConfig() {
