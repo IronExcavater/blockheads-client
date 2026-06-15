@@ -1,0 +1,13 @@
+{
+  "required": false,
+  "package": "com.theblockheads.clienttweaks.mixin.ipn",
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "AutoRefillItemSlotMonitorAccessor",
+    "AutoRefillItemSlotMonitorCompanionInvoker",
+    "AutoRefillItemSlotMonitorMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

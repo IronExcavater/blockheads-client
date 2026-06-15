@@ -19,7 +19,8 @@
     ]
   },
   "mixins": [
-    "blockheads_client_tweaks.mixins.json"
+    "blockheads_client_tweaks.mixins.json",
+    "blockheads_client_tweaks_ipn.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.15.0",
@@ -32,6 +33,9 @@
     "modmenu": "*",
     "jei": "*",
     "travelertoolbelt": "*",
-    "ok_zoomer": "*"
+    "ok_zoomer": "*",
+    "inventoryprofilesnext": "*",
+    "libipn": "*",
+    "trinkets_updated": "*"
   }
 }

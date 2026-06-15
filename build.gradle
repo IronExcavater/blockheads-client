@@ -23,6 +23,10 @@ repositories {
 		name = 'BlameJared'
 		url = 'https://maven.blamejared.com'
 	}
+	maven {
+		name = 'Nucleoid'
+		url = 'https://maven.nucleoid.xyz/releases'
+	}
 }
 
 loom {
@@ -56,6 +60,15 @@ dependencies {
 	// Optional JEI plugin: hide internal-only enchantment books when JEI is present.
 	compileOnly "mezz.jei:jei-${project.minecraft_version}-fabric-api:${project.jei_version}"
 	compileOnly files("libs/travelertoolbelt-fabric-26.1.2-1.0.1.jar")
+	compileOnly fileTree(dir: 'libs', include: [
+		'InventoryProfilesNext*.jar',
+		'libIPN*.jar',
+		'libipn*.jar'
+	])
+
+	// Optional Trinkets integration: lets the glider (elytra) slot work in a Trinkets
+	// accessory slot. Provided at runtime by the client when Trinkets is installed.
+	compileOnly "eu.pb4:trinkets:${project.trinkets_version}"
 }
 
 processResources {

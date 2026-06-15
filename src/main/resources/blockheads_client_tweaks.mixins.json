@@ -8,7 +8,8 @@
     "ToolTrimsTemplateTooltipMixin",
     "MapSyncerAutoSyncMixin",
     "MapSyncerChatMessageMixin",
-    "MapSyncerSyncProgressMixin"
+    "MapSyncerSyncProgressMixin",
+    "nicknames.EntityRendererNicknameMixin"
   ],
   "injectors": {
     "defaultRequire": 1
