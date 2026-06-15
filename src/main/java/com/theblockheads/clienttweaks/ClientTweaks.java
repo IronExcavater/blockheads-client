@@ -3,6 +3,7 @@ package com.theblockheads.clienttweaks;
 import com.theblockheads.clienttweaks.compat.MapSyncerSilenceCommand;
 import com.theblockheads.clienttweaks.compat.OkZoomerServerOverrides;
 import com.theblockheads.clienttweaks.network.OkZoomerServerConfigPayload;
+import com.theblockheads.clienttweaks.registry.BlockheadsServerStatRegistry;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.api.ClientModInitializer;
@@ -21,6 +22,7 @@ public class ClientTweaks implements ClientModInitializer {
 		ClientPlayNetworking.registerGlobalReceiver(OkZoomerServerConfigPayload.TYPE, (payload, context) ->
 				context.client().execute(() -> OkZoomerServerOverrides.apply(payload.spyglassMode(), payload.zoomOverlay())));
 		MapSyncerSilenceCommand.register();
+		BlockheadsServerStatRegistry.register();
 		ClientTweaksConstants.LOGGER.info("The Block Client Tweaks initialized");
 	}
 
