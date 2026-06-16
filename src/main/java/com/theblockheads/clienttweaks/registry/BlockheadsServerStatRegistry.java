@@ -11,8 +11,21 @@ public final class BlockheadsServerStatRegistry {
 	}
 
 	public static void register() {
+		registerCustomStat("distance_land");
+		registerCustomStat("distance_sea");
+		registerCustomStat("distance_air");
 		registerCustomStat("grown_crops");
-		registerCustomStat("distance_blocks");
+		registerCustomStat("buried_treasure");
+		registerCustomStat("vaults_opened");
+		registerCustomStat("hostile_kills");
+		registerCustomStat("wither_kills");
+		registerCustomStat("evoker_kills");
+		registerCustomStat("elder_guardian_kills");
+		registerCustomStat("shulker_kills");
+		registerCustomStat("piglin_brute_kills");
+		registerCustomStat("unique_foods_eaten");
+		registerCustomStat("xp_held");
+		registerCustomStat("xp_gained");
 	}
 
 	private static void registerCustomStat(String path) {

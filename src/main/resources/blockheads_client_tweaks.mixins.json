@@ -9,7 +9,8 @@
     "MapSyncerAutoSyncMixin",
     "MapSyncerChatMessageMixin",
     "MapSyncerSyncProgressMixin",
-    "nicknames.EntityRendererNicknameMixin"
+    "nicknames.EntityRendererNicknameMixin",
+    "xaero.GuiWaypointsSharedWaypointMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -7,6 +7,7 @@ import com.theblockheads.clienttweaks.nicknames.StyledNicknameSyncClient;
 import com.theblockheads.clienttweaks.network.OkZoomerServerConfigPayload;
 import com.theblockheads.clienttweaks.registry.BlockheadsServerStatRegistry;
 import com.theblockheads.clienttweaks.trinkets.TrinketGliderHandler;
+import com.theblockheads.clienttweaks.waypoints.SharedWaypointClient;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.api.ClientModInitializer;
@@ -28,6 +29,10 @@ public class ClientTweaks implements ClientModInitializer {
 		MapSyncerSilenceCommand.register();
 		BlockheadsServerStatRegistry.register();
 		StyledNicknameSyncClient.register();
+
+		if (FabricLoader.getInstance().isModLoaded("xaerominimap")) {
+			SharedWaypointClient.register();
+		}
 
 		if (FabricLoader.getInstance().isModLoaded("inventoryprofilesnext")) {
 			BackpackRefillClient.register();

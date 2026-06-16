@@ -27,7 +27,8 @@
     "minecraft": "~26.1",
     "cloth-config": ">=26",
     "fabric-command-api-v2": "*",
-    "fabric-networking-api-v1": "*"
+    "fabric-networking-api-v1": "*",
+    "trinkets_updated": "*"
   },
   "suggests": {
     "modmenu": "*",
@@ -35,7 +36,6 @@
     "travelertoolbelt": "*",
     "ok_zoomer": "*",
     "inventoryprofilesnext": "*",
-    "libipn": "*",
-    "trinkets_updated": "*"
+    "libipn": "*"
   }
 }

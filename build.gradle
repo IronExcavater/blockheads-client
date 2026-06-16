@@ -63,7 +63,9 @@ dependencies {
 	compileOnly fileTree(dir: 'libs', include: [
 		'InventoryProfilesNext*.jar',
 		'libIPN*.jar',
-		'libipn*.jar'
+		'libipn*.jar',
+		'xaerominimap*.jar',
+		'xaeroworldmap*.jar'
 	])
 
 	// Optional Trinkets integration: lets the glider (elytra) slot work in a Trinkets
