@@ -36,7 +36,16 @@ jobs:
           cache-read-only: false
 
       - name: Build
-        run: chmod +x gradlew && ./gradlew build -Pmod_version=${{ steps.meta.outputs.version }}
+        run: |
+          chmod +x gradlew
+          for attempt in 1 2 3; do
+            ./gradlew build -Pmod_version=${{ steps.meta.outputs.version }} && exit 0
+            status=$?
+            if [ "$attempt" -eq 3 ]; then
+              exit "$status"
+            fi
+            sleep $((attempt * 15))
+          done
 
       - name: Upload mod jar
         uses: actions/upload-artifact@v6

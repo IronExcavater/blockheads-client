@@ -35,7 +35,16 @@ jobs:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
       - name: Build
-        run: chmod +x gradlew && ./gradlew build
+        run: |
+          chmod +x gradlew
+          for attempt in 1 2 3; do
+            ./gradlew build && exit 0
+            status=$?
+            if [ "$attempt" -eq 3 ]; then
+              exit "$status"
+            fi
+            sleep $((attempt * 15))
+          done
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v6
