@@ -60,6 +60,7 @@ dependencies {
 	// Optional JEI plugin: hide internal-only enchantment books when JEI is present.
 	compileOnly "mezz.jei:jei-${project.minecraft_version}-fabric-api:${project.jei_version}"
 	compileOnly files("libs/travelertoolbelt-fabric-26.1.2-1.0.1.jar")
+	compileOnly files("libs/xaerominimap-fabric-26.1.2-25.3.14.jar")
 	compileOnly fileTree(dir: 'libs', include: [
 		'InventoryProfilesNext*.jar',
 		'libIPN*.jar',

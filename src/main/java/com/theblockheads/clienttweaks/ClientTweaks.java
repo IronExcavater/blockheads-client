@@ -3,6 +3,7 @@ package com.theblockheads.clienttweaks;
 import com.theblockheads.clienttweaks.backpack.BackpackRefillClient;
 import com.theblockheads.clienttweaks.compat.MapSyncerSilenceCommand;
 import com.theblockheads.clienttweaks.compat.OkZoomerServerOverrides;
+import com.theblockheads.clienttweaks.compat.XaeroWaypointSyncClient;
 import com.theblockheads.clienttweaks.nicknames.StyledNicknameSyncClient;
 import com.theblockheads.clienttweaks.network.OkZoomerServerConfigPayload;
 import com.theblockheads.clienttweaks.registry.BlockheadsServerStatRegistry;
@@ -28,6 +29,9 @@ public class ClientTweaks implements ClientModInitializer {
 		MapSyncerSilenceCommand.register();
 		BlockheadsServerStatRegistry.register();
 		StyledNicknameSyncClient.register();
+		if (FabricLoader.getInstance().isModLoaded("xaerominimap")) {
+			XaeroWaypointSyncClient.register();
+		}
 
 		if (FabricLoader.getInstance().isModLoaded("inventoryprofilesnext")) {
 			BackpackRefillClient.register();
