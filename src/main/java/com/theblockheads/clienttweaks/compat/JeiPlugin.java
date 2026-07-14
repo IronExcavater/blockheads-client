@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import com.theblockheads.clienttweaks.ClientTweaks;
+import com.theblockheads.clienttweaks.ClientTweaksConstants;
 import com.theblockheads.clienttweaks.InternalEnchantments;
 import com.tiviacz.travelertoolbelt.init.ModItems;
 import com.tiviacz.travelertoolbelt.recipe.ShapedBeltRecipe;
@@ -14,6 +15,8 @@ import mezz.jei.api.recipe.category.extensions.vanilla.crafting.ICraftingCategor
 import mezz.jei.api.recipe.vanilla.IJeiShapedRecipeBuilder;
 import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.IVanillaCategoryExtensionRegistration;
+import mezz.jei.api.registration.IExtraIngredientRegistration;
+import mezz.jei.api.registration.IIngredientAliasRegistration;
 import mezz.jei.api.registration.IRuntimeRegistration;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.component.DataComponents;
@@ -52,6 +55,25 @@ public class JeiPlugin implements IModPlugin {
 	}
 
 	@Override
+	public void registerExtraIngredients(IExtraIngredientRegistration registration) {
+		if (FabricLoader.getInstance().isModLoaded("mr_villager_vanity")) {
+			registration.addExtraItemStacks(villagerVanityRecipes().stream()
+				.map(VillagerVanityRecipe::result)
+				.toList());
+			ClientTweaksConstants.LOGGER.info("Registered {} Villager Vanity JEI ingredient variants", villagerVanityRecipes().size());
+		}
+	}
+
+	@Override
+	public void registerIngredientAliases(IIngredientAliasRegistration registration) {
+		if (FabricLoader.getInstance().isModLoaded("mr_villager_vanity")) {
+			for (VillagerVanityRecipe recipe : villagerVanityRecipes()) {
+				registration.addAlias(recipe.result(), recipe.displayName());
+			}
+		}
+	}
+
+	@Override
 	public void registerRecipes(IRecipeRegistration registration) {
 		if (FabricLoader.getInstance().isModLoaded("travelertoolbelt")) {
 			registration.addRecipes(mezz.jei.api.constants.RecipeTypes.CRAFTING, List.of(
@@ -63,58 +85,11 @@ public class JeiPlugin implements IModPlugin {
 		}
 
 		if (FabricLoader.getInstance().isModLoaded("mr_villager_vanity")) {
-			registration.addRecipes(mezz.jei.api.constants.RecipeTypes.CRAFTING, List.of(
-				villagerVanity(registration, "armorer_mask", "Armorer's Mask", "armorer_mask", Map.of(
-					'G', Items.LEATHER,
-					'I', Items.IRON_INGOT,
-					'W', Items.IRON_NUGGET
-				), "GIG", "IWI"),
-				villagerVanity(registration, "butcher_headband", "Butcher's Headband", "butcher_headband", Map.of(
-					'G', Items.LEATHER
-				), "G G", "GGG"),
-				villagerVanity(registration, "cartographer_monocle", "Cartographer's Monocle", "cartographer_monocle", Map.of(
-					'G', Items.GLASS_PANE,
-					'I', Items.GOLD_NUGGET
-				), " II", "IGI", " I "),
-				villagerVanity(registration, "desert_cap", "Dusty Cap", "desert_cap", Map.of(
-					'G', Items.ORANGE_CARPET,
-					'I', Items.WHITE_WOOL
-				), " I ", "GGG"),
-				villagerVanity(registration, "farmer_hat", "Farmer's Hat", "farmer_hat", Map.of(
-					'G', Items.LEATHER,
-					'I', Items.WHEAT
-				), " G ", "III"),
-				villagerVanity(registration, "fisherman_hat", "Fisherman's Hat", "fisherman_hat", Map.of(
-					'G', Items.WHEAT
-				), "GGG", "G G"),
-				villagerVanity(registration, "fletcher_hat", "Fletcher's Cap", "fletcher_hat", Map.of(
-					'G', Items.LEATHER,
-					'I', Items.FEATHER
-				), "GGI", "G G"),
-				villagerVanity(registration, "librarian_book", "Librarian's Book and Glasses", "librarian_book", Map.of(
-					'G', Items.BOOK,
-					'I', Items.GLASS_PANE
-				), "G ", "II"),
-				villagerVanity(registration, "savanna_headband", "Leafy Headband", "savanna_headband", Map.of(
-					'G', Items.VINE
-				), " GG", "G G", "GG "),
-				villagerVanity(registration, "shepherd_hat", "Shepherd's Cap", "shepherd_hat", Map.of(
-					'G', Items.BROWN_WOOL,
-					'W', Items.BROWN_CARPET
-				), "GGG", "W W"),
-				villagerVanity(registration, "snow_cap", "Snowy Cap", "snow_cap", Map.of(
-					'G', Items.WHITE_CARPET,
-					'W', Items.CYAN_WOOL
-				), " G ", "W W"),
-				villagerVanity(registration, "swamp_lilypad", "Wet Lilypad", "swamp_lilypad", Map.of(
-					'G', Items.LEATHER,
-					'W', Items.LILY_PAD
-				), "W", "G"),
-				villagerVanity(registration, "weaponsmith_eyepatch", "Weaponsmith's Eyepatch", "weaponsmith_eye_patch", Map.of(
-					'G', Items.BLACK_WOOL,
-					'I', Items.STRING
-				), " I ", "I I", " IG")
-			));
+			List<RecipeHolder<CraftingRecipe>> recipes = villagerVanityRecipes().stream()
+				.map(recipe -> villagerVanity(registration, recipe))
+				.toList();
+			registration.addRecipes(mezz.jei.api.constants.RecipeTypes.CRAFTING, recipes);
+			ClientTweaksConstants.LOGGER.info("Registered {} Villager Vanity JEI crafting recipes", recipes.size());
 		}
 	}
 
@@ -156,6 +131,83 @@ public class JeiPlugin implements IModPlugin {
 
 	private static RecipeHolder<CraftingRecipe> villagerVanity(
 		IRecipeRegistration registration,
+		VillagerVanityRecipe recipe
+	) {
+		IJeiShapedRecipeBuilder builder = registration.getVanillaRecipeFactory()
+			.createShapedRecipeBuilder(
+				CraftingBookCategory.EQUIPMENT,
+				new SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate.fromNonEmptyStack(recipe.result()))
+			)
+			.group("villager_vanity.headwear");
+
+		recipe.ingredients().forEach((key, item) -> builder.define(key, Ingredient.of(item)));
+		for (String row : recipe.pattern()) {
+			builder.pattern(row);
+		}
+
+		ResourceKey<Recipe<?>> id = ResourceKey.create(
+			Registries.RECIPE,
+			Identifier.fromNamespaceAndPath(ClientTweaks.MOD_ID, "jei/villager_vanity/" + recipe.path())
+		);
+		return new RecipeHolder<>(id, builder.build());
+	}
+
+	private static List<VillagerVanityRecipe> villagerVanityRecipes() {
+		return List.of(
+			villagerVanityRecipe("armorer_mask", "Armorer's Mask", "armorer_mask", Map.of(
+				'G', Items.LEATHER,
+				'I', Items.IRON_INGOT,
+				'W', Items.IRON_NUGGET
+			), "GIG", "IWI"),
+			villagerVanityRecipe("butcher_headband", "Butcher's Headband", "butcher_headband", Map.of(
+				'G', Items.LEATHER
+			), "G G", "GGG"),
+			villagerVanityRecipe("cartographer_monocle", "Cartographer's Monocle", "cartographer_monocle", Map.of(
+				'G', Items.GLASS_PANE,
+				'I', Items.GOLD_NUGGET
+			), " II", "IGI", " I "),
+			villagerVanityRecipe("desert_cap", "Dusty Cap", "desert_cap", Map.of(
+				'G', Items.ORANGE_CARPET,
+				'I', Items.WHITE_WOOL
+			), " I ", "GGG"),
+			villagerVanityRecipe("farmer_hat", "Farmer's Hat", "farmer_hat", Map.of(
+				'G', Items.LEATHER,
+				'I', Items.WHEAT
+			), " G ", "III"),
+			villagerVanityRecipe("fisherman_hat", "Fisherman's Hat", "fisherman_hat", Map.of(
+				'G', Items.WHEAT
+			), "GGG", "G G"),
+			villagerVanityRecipe("fletcher_hat", "Fletcher's Cap", "fletcher_hat", Map.of(
+				'G', Items.LEATHER,
+				'I', Items.FEATHER
+			), "GGI", "G G"),
+			villagerVanityRecipe("librarian_book", "Librarian's Book and Glasses", "librarian_book", Map.of(
+				'G', Items.BOOK,
+				'I', Items.GLASS_PANE
+			), "G ", "II"),
+			villagerVanityRecipe("savanna_headband", "Leafy Headband", "savanna_headband", Map.of(
+				'G', Items.VINE
+			), " GG", "G G", "GG "),
+			villagerVanityRecipe("shepherd_hat", "Shepherd's Cap", "shepherd_hat", Map.of(
+				'G', Items.BROWN_WOOL,
+				'W', Items.BROWN_CARPET
+			), "GGG", "W W"),
+			villagerVanityRecipe("snow_cap", "Snowy Cap", "snow_cap", Map.of(
+				'G', Items.WHITE_CARPET,
+				'W', Items.CYAN_WOOL
+			), " G ", "W W"),
+			villagerVanityRecipe("swamp_lilypad", "Wet Lilypad", "swamp_lilypad", Map.of(
+				'G', Items.LEATHER,
+				'W', Items.LILY_PAD
+			), "W", "G"),
+			villagerVanityRecipe("weaponsmith_eyepatch", "Weaponsmith's Eyepatch", "weaponsmith_eye_patch", Map.of(
+				'G', Items.BLACK_WOOL,
+				'I', Items.STRING
+			), " I ", "I I", " IG")
+		);
+	}
+
+	private static VillagerVanityRecipe villagerVanityRecipe(
 		String path,
 		String displayName,
 		String modelPath,
@@ -169,24 +221,10 @@ public class JeiPlugin implements IModPlugin {
 		result.set(DataComponents.EQUIPPABLE, Equippable.builder(EquipmentSlot.HEAD).build());
 		result.remove(DataComponents.CONSUMABLE);
 		result.remove(DataComponents.FOOD);
+		return new VillagerVanityRecipe(path, displayName, ingredients, List.of(pattern), result);
+	}
 
-		IJeiShapedRecipeBuilder builder = registration.getVanillaRecipeFactory()
-			.createShapedRecipeBuilder(
-				CraftingBookCategory.EQUIPMENT,
-				new SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate.fromNonEmptyStack(result))
-			)
-			.group("villager_vanity.headwear");
-
-		ingredients.forEach((key, item) -> builder.define(key, Ingredient.of(item)));
-		for (String row : pattern) {
-			builder.pattern(row);
-		}
-
-		ResourceKey<Recipe<?>> id = ResourceKey.create(
-			Registries.RECIPE,
-			Identifier.fromNamespaceAndPath(ClientTweaks.MOD_ID, "jei/villager_vanity/" + path)
-		);
-		return new RecipeHolder<>(id, builder.build());
+	private record VillagerVanityRecipe(String path, String displayName, Map<Character, Item> ingredients, List<String> pattern, ItemStack result) {
 	}
 
 	private static final class BeltShapedExtension implements ICraftingCategoryExtension<ShapedBeltRecipe> {

@@ -1,7 +1,9 @@
 package com.theblockheads.clienttweaks.compat;
 
 import com.theblockheads.clienttweaks.ClientTweaksConstants;
+import com.theblockheads.clienttweaks.network.WaypointClientEditPayload;
 import com.theblockheads.clienttweaks.network.WaypointSyncPayload;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.core.registries.Registries;
@@ -19,20 +21,31 @@ import xaero.hud.minimap.world.container.MinimapWorldContainer;
 import xaero.hud.path.XaeroPath;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
+import java.util.UUID;
 
 public final class XaeroWaypointSyncClient {
     private static final String DEFAULT_SET = "Blockheads";
+    private static final int POLL_INTERVAL_TICKS = 100;
+    private static final Map<UUID, TrackedWaypoint> TRACKED = new HashMap<>();
+    private static int ticks;
 
     private XaeroWaypointSyncClient() {
     }
 
     public static void register() {
         PayloadTypeRegistry.clientboundPlay().register(WaypointSyncPayload.TYPE, WaypointSyncPayload.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(WaypointClientEditPayload.TYPE, WaypointClientEditPayload.CODEC);
         ClientPlayNetworking.registerGlobalReceiver(WaypointSyncPayload.TYPE, (payload, context) ->
             context.client().execute(() -> apply(payload)));
+        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            if (++ticks >= POLL_INTERVAL_TICKS) {
+                ticks = 0;
+                pollTrackedWaypoints();
+            }
+        });
         ClientTweaksConstants.LOGGER.info("Blockheads Xaero waypoint sync registered");
     }
 
@@ -50,31 +63,145 @@ public final class XaeroWaypointSyncClient {
             return;
         }
 
-        WaypointSet existingSet = findSetContaining(world, payload.name());
-        removeByName(world, payload.name());
+        LocatedWaypoint located = locate(world, payload);
+        if (payload.delete()) {
+            if (located != null) {
+                located.set().remove(located.waypoint());
+                markChangedAndSave(session, world, payload.name());
+            }
+            TRACKED.remove(payload.id());
+            return;
+        }
 
-        if (!payload.delete()) {
-            WaypointSet targetSet = existingSet != null ? existingSet : set(world, cleanSetName(payload.setName()));
-            Waypoint waypoint = new Waypoint(
+        Waypoint waypoint;
+        WaypointSet targetSet;
+        if (located == null) {
+            targetSet = set(world, cleanSetName(payload.setName()));
+            waypoint = new Waypoint(
                 payload.x(),
                 payload.y(),
                 payload.z(),
                 safeWaypointText(payload.name(), 32, "Waypoint"),
                 safeWaypointText(payload.initials(), 3, "WP"),
-                WaypointColor.fromIndex(Math.floorMod(payload.color(), WaypointColor.values().length)),
+                color(payload.color()),
                 WaypointPurpose.NORMAL,
                 false,
                 true
             );
             targetSet.add(waypoint);
-            session.getWaypointSession().setSetChangedTime(System.currentTimeMillis());
+        } else {
+            targetSet = located.set();
+            waypoint = located.waypoint();
+            applySnapshot(waypoint, Snapshot.fromPayload(payload));
         }
 
-        try {
-            session.getWorldManagerIO().saveWorld(world);
-        } catch (IOException e) {
-            ClientTweaksConstants.LOGGER.warn("Could not save Xaero waypoint sync for {}", payload.name(), e);
+        TRACKED.put(payload.id(), new TrackedWaypoint(payload.id(), payload.dimension(), targetSet.getName(), waypoint, Snapshot.fromPayload(payload)));
+        markChangedAndSave(session, world, payload.name());
+    }
+
+    private static void pollTrackedWaypoints() {
+        if (TRACKED.isEmpty() || !ClientPlayNetworking.canSend(WaypointClientEditPayload.TYPE)) {
+            return;
         }
+
+        MinimapSession session = BuiltInHudModules.MINIMAP.getCurrentSession();
+        if (session == null || session.getWorldState().getAutoRootContainerPath() == null) {
+            return;
+        }
+
+        for (TrackedWaypoint tracked : Map.copyOf(TRACKED).values()) {
+            MinimapWorld world = worldFor(session, tracked.snapshot().dimensionKey());
+            if (world == null) {
+                continue;
+            }
+
+            LocatedWaypoint located = locate(world, tracked);
+            if (located == null) {
+                TRACKED.remove(tracked.id());
+                ClientPlayNetworking.send(WaypointClientEditPayload.delete(tracked.id()));
+                continue;
+            }
+
+            Snapshot current = Snapshot.fromWaypoint(tracked.snapshot().dimension(), located.waypoint());
+            if (!current.equals(tracked.snapshot())) {
+                TRACKED.put(tracked.id(), tracked.with(located.set().getName(), located.waypoint(), current));
+                ClientPlayNetworking.send(new WaypointClientEditPayload(
+                    false,
+                    tracked.id(),
+                    current.name(),
+                    current.initials(),
+                    current.dimension(),
+                    current.x(),
+                    current.y(),
+                    current.z(),
+                    current.color()
+                ));
+            }
+        }
+    }
+
+    private static LocatedWaypoint locate(MinimapWorld world, WaypointSyncPayload payload) {
+        TrackedWaypoint tracked = TRACKED.get(payload.id());
+        if (tracked != null) {
+            LocatedWaypoint located = locate(world, tracked);
+            if (located != null) {
+                return located;
+            }
+        }
+
+        LocatedWaypoint exact = findBySnapshot(world, Snapshot.fromPayload(payload));
+        return exact != null ? exact : findByName(world, payload.name());
+    }
+
+    private static LocatedWaypoint locate(MinimapWorld world, TrackedWaypoint tracked) {
+        LocatedWaypoint byIdentity = findByIdentity(world, tracked.waypoint());
+        return byIdentity != null ? byIdentity : findBySnapshot(world, tracked.snapshot());
+    }
+
+    private static LocatedWaypoint findByIdentity(MinimapWorld world, Waypoint needle) {
+        if (needle == null) {
+            return null;
+        }
+        for (WaypointSet set : world.getIterableWaypointSets()) {
+            for (Waypoint waypoint : set.getWaypoints()) {
+                if (waypoint == needle) {
+                    return new LocatedWaypoint(set, waypoint);
+                }
+            }
+        }
+        return null;
+    }
+
+    private static LocatedWaypoint findBySnapshot(MinimapWorld world, Snapshot snapshot) {
+        for (WaypointSet set : world.getIterableWaypointSets()) {
+            for (Waypoint waypoint : set.getWaypoints()) {
+                if (snapshot.matches(waypoint)) {
+                    return new LocatedWaypoint(set, waypoint);
+                }
+            }
+        }
+        return null;
+    }
+
+    private static LocatedWaypoint findByName(MinimapWorld world, String name) {
+        for (WaypointSet set : world.getIterableWaypointSets()) {
+            for (Waypoint waypoint : set.getWaypoints()) {
+                if (sameName(waypoint, name)) {
+                    return new LocatedWaypoint(set, waypoint);
+                }
+            }
+        }
+        return null;
+    }
+
+    private static void applySnapshot(Waypoint waypoint, Snapshot snapshot) {
+        waypoint.setX(snapshot.x());
+        waypoint.setY(snapshot.y());
+        waypoint.setZ(snapshot.z());
+        waypoint.setName(safeWaypointText(snapshot.name(), 32, "Waypoint"));
+        waypoint.setInitials(safeWaypointText(snapshot.initials(), 3, "WP"));
+        waypoint.setWaypointColor(color(snapshot.color()));
+        waypoint.setColor(Math.floorMod(snapshot.color(), WaypointColor.values().length));
     }
 
     private static MinimapWorld worldFor(MinimapSession session, ResourceKey<Level> dimension) {
@@ -113,27 +240,17 @@ public final class XaeroWaypointSyncClient {
         return set;
     }
 
-    private static WaypointSet findSetContaining(MinimapWorld world, String name) {
-        for (WaypointSet set : world.getIterableWaypointSets()) {
-            for (Waypoint waypoint : set.getWaypoints()) {
-                if (sameName(waypoint, name)) {
-                    return set;
-                }
-            }
+    private static void markChangedAndSave(MinimapSession session, MinimapWorld world, String name) {
+        session.getWaypointSession().setSetChangedTime(System.currentTimeMillis());
+        try {
+            session.getWorldManagerIO().saveWorld(world);
+        } catch (IOException e) {
+            ClientTweaksConstants.LOGGER.warn("Could not save Xaero waypoint sync for {}", name, e);
         }
-        return null;
     }
 
-    private static void removeByName(MinimapWorld world, String name) {
-        for (WaypointSet set : world.getIterableWaypointSets()) {
-            List<Waypoint> toRemove = new ArrayList<>();
-            for (Waypoint waypoint : set.getWaypoints()) {
-                if (sameName(waypoint, name)) {
-                    toRemove.add(waypoint);
-                }
-            }
-            toRemove.forEach(set::remove);
-        }
+    private static WaypointColor color(int color) {
+        return WaypointColor.fromIndex(Math.floorMod(color, WaypointColor.values().length));
     }
 
     private static boolean sameName(Waypoint waypoint, String name) {
@@ -157,5 +274,53 @@ public final class XaeroWaypointSyncClient {
         String truncated = cleaned.substring(0, maxLength).trim();
         int lastSpace = truncated.lastIndexOf(' ');
         return (lastSpace > 0 ? truncated.substring(0, lastSpace) : truncated).toUpperCase(Locale.ROOT).isBlank() ? fallback : truncated;
+    }
+
+    private record LocatedWaypoint(WaypointSet set, Waypoint waypoint) {
+    }
+
+    private record TrackedWaypoint(UUID id, String dimension, String setName, Waypoint waypoint, Snapshot snapshot) {
+        private TrackedWaypoint with(String setName, Waypoint waypoint, Snapshot snapshot) {
+            return new TrackedWaypoint(id, dimension, setName, waypoint, snapshot);
+        }
+    }
+
+    private record Snapshot(String dimension, int x, int y, int z, String name, String initials, int color) {
+        private static Snapshot fromPayload(WaypointSyncPayload payload) {
+            return new Snapshot(
+                payload.dimension(),
+                payload.x(),
+                payload.y(),
+                payload.z(),
+                safeWaypointText(payload.name(), 32, "Waypoint"),
+                safeWaypointText(payload.initials(), 3, "WP"),
+                Math.floorMod(payload.color(), WaypointColor.values().length)
+            );
+        }
+
+        private static Snapshot fromWaypoint(String dimension, Waypoint waypoint) {
+            return new Snapshot(
+                dimension,
+                waypoint.getX(),
+                waypoint.getY(),
+                waypoint.getZ(),
+                safeWaypointText(waypoint.getName(), 32, "Waypoint"),
+                safeWaypointText(waypoint.getInitials(), 3, "WP"),
+                Math.floorMod(waypoint.getColor(), WaypointColor.values().length)
+            );
+        }
+
+        private ResourceKey<Level> dimensionKey() {
+            return ResourceKey.create(Registries.DIMENSION, Identifier.parse(dimension));
+        }
+
+        private boolean matches(Waypoint waypoint) {
+            return x == waypoint.getX()
+                && y == waypoint.getY()
+                && z == waypoint.getZ()
+                && color == Math.floorMod(waypoint.getColor(), WaypointColor.values().length)
+                && name.equals(safeWaypointText(waypoint.getName(), 32, "Waypoint"))
+                && initials.equals(safeWaypointText(waypoint.getInitials(), 3, "WP"));
+        }
     }
 }
